@@ -113,8 +113,7 @@
     "hooks": {
       "before-build-npm": [
         "python -m pip install jupyterlab~=3.1",
-        "jlpm",
-        "jlpm build:prod"
+        "jlpm"
       ],
       "before-build-python": [
         "jlpm clean:all"
