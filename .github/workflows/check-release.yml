@@ -19,6 +19,9 @@ jobs:
       - name: List files
         run: |
           tree
+      - name: Plain pack
+        run: |
+          file_name=$(npm pack) && tar -ztf $file_name && rm $file_name  # https://stackoverflow.com/a/41412857/6646912
       - name: Check Release
         uses: jupyter-server/jupyter_releaser/.github/actions/check-release@v2
         with:
