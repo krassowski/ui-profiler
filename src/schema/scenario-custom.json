@@ -1,0 +1,55 @@
+{
+  "title": "Custom Scenario Options",
+  "type": "object",
+  "definitions": {
+    "step": {
+      "description": "Command to execute",
+      "type": "object",
+      "properties": {
+        "command": {
+          "title": "Command",
+          "description": "JupyterLab command to execute",
+          "type": "string"
+        },
+        "arguments": {
+          "title": "Arguments",
+          "description": "JupyterLab command arguments",
+          "type": "object"
+        }
+      },
+      "default": {
+        "command": ""
+      }
+    }
+  },
+  "properties": {
+    "setup": {
+      "title": "Setup",
+      "description": "List of steps to execute before starting the benchmark/analysis",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/step"
+      },
+      "default": []
+    },
+    "run": {
+      "title": "Run",
+      "description": "List of steps to analyse in scenario",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/step"
+      },
+      "default": [{ "command": "help:about" }]
+    },
+    "cleanup": {
+      "title": "Cleanup",
+      "description": "List of steps to execute after finishing the benchmark/analysis",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/step"
+      },
+      "default": []
+    }
+  },
+  "required": ["run"]
+}

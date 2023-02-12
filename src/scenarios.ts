@@ -20,6 +20,7 @@ import type { CompleterScenarioOptions } from './types/_scenario-completer';
 import type { SidebarsScenarioOptions } from './types/_scenario-sidebars';
 import type { ScrollScenarioOptions } from './types/_scenario-scroll';
 import type { DebuggerScenarioOptions } from './types/_scenario-debugger';
+import type { CustomScenarioOptions } from './types/_scenario-custom';
 
 import scenarioOptionsSchema from './schema/scenario-base.json';
 import scenarioMenuOpenOptionsSchema from './schema/scenario-menu-open.json';
@@ -28,6 +29,7 @@ import scenarioCompleterOptionsSchema from './schema/scenario-completer.json';
 import scenarioDebuggerOptionsSchema from './schema/scenario-debugger.json';
 import scenarioSidebarsSchema from './schema/scenario-sidebars.json';
 import scenarioScrollSchema from './schema/scenario-scroll.json';
+import scenarioCustomSchema from './schema/scenario-custom.json';
 
 async function switchMainMenu(jupyterApp: JupyterFrontEnd) {
   for (const menu of ['edit', 'view', 'run', 'kernel', 'settings', 'help']) {
@@ -595,11 +597,42 @@ export class SwitchTabFocusScenario extends SwitchTabScenario {
   split: 'first' | 'all' = 'all';
 }
 
+class CustomScenario implements IScenario {
+  id = 'customScenario'
+  name = 'Custom Scenario'
+  configSchema = scenarioCustomSchema as any as JSONSchema7;
+
+  constructor(protected jupyterApp: JupyterFrontEnd) {
+    const commands = jupyterApp.commands.listCommands();
+    const definitions = this.configSchema.definitions as any;
+    // TODO: https://github.com/jupyterlab/jupyterlab/issues/13962#issuecomment-1427111972
+    // or something similar?
+    definitions.step.properties.command.enum = commands;
+  }
+
+  setOptions(options: CustomScenarioOptions): void {
+    this._options = options;
+  }
+
+  private _options: CustomScenarioOptions | null = null;
+
+  async run () {
+    const options =  this._options;
+    if (!options) {
+      throw new Error('Options not set');
+    }
+    for (const step of options.run!) {
+      await this.jupyterApp.commands.execute(step.command!, step.arguments!);
+    }
+  }
+}
+
 export const plugin: JupyterFrontEndPlugin<void> = {
   id: '@jupyterlab/ui-profiler:default-scenarios',
   autoStart: true,
   requires: [IUIProfiler],
   activate: (app: JupyterFrontEnd, profiler: IUIProfiler) => {
+    const customScenario = new CustomScenario(app);
     [
       new MenuOpenScenario(app),
       new MenuSwitchScenario(app),
@@ -608,7 +641,8 @@ export const plugin: JupyterFrontEndPlugin<void> = {
       new SidebarOpenScenario(app),
       new CompleterScenario(app),
       new ScrollScenario(app),
-      new DebuggerScenario(app)
+      new DebuggerScenario(app),
+      customScenario
     ].map(scenario => profiler.addScenario(scenario));
   }
 };
